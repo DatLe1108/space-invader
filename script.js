@@ -21,17 +21,58 @@ class Player {
     }
 
     //horizontal boundary
-    if (this.x < 0) {
-      this.x = 0;
+    if (this.x < -(this.width / 2)) {
+      this.x = -this.width / 2;
     }
 
-    if (this.x > this.game.width - this.width) {
-      this.x = this.game.width - this.width;
+    if (this.x > this.game.width - this.width / 2) {
+      this.x = this.game.width - this.width / 2;
+    }
+  }
+
+  shoot() {
+    const projectile = this.game.getProjectTile();
+    if (projectile) {
+      projectile.start(this.x + this.width / 2, this.y);
     }
   }
 }
 
-class Projectile {}
+class Projectile {
+  constructor() {
+    this.width = 8;
+    this.height = 20;
+    this.x = 0;
+    this.y = 0;
+    this.speed = 20;
+    this.free = true;
+  }
+  draw(context) {
+    if (!this.free) {
+      context.fillRect(this.x, this.y, this.width, this.height);
+    }
+  }
+
+  update() {
+    if (!this.free) {
+      this.y -= this.speed;
+
+      if (this.y < 0 - this.height) {
+        this.reset();
+      }
+    }
+  }
+
+  start(x, y) {
+    this.x = x - this.width / 2;
+    this.y = y;
+    this.free = false;
+  }
+
+  reset() {
+    this.free = true;
+  }
+}
 
 class Enemy {}
 
@@ -43,10 +84,18 @@ class Game {
     this.keys = [];
     this.player = new Player(this);
 
+    this.projectilesPool = [];
+    this.numberOfProjectiles = 10;
+    this.createProjectiles();
+
     //event listener
     window.addEventListener("keydown", (e) => {
       if (this.keys.indexOf(e.key) < 0) {
         this.keys.push(e.key);
+      }
+
+      if (e.key === "1") {
+        this.player.shoot();
       }
     });
 
@@ -61,6 +110,22 @@ class Game {
   render(context) {
     this.player.draw(context);
     this.player.update();
+    this.projectilesPool.forEach((projectile) => {
+      projectile.update();
+      projectile.draw(context);
+    });
+  }
+
+  // create projetiles object pool
+  createProjectiles() {
+    for (let i = 0; i < this.numberOfProjectiles; i++) {
+      this.projectilesPool.push(new Projectile());
+    }
+  }
+
+  //get 1 free projectile from the pool
+  getProjectTile() {
+    return this.projectilesPool.find(({ free }) => free);
   }
 }
 
