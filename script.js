@@ -12,7 +12,22 @@ class Player {
     context.fillRect(this.x, this.y, this.width, this.height);
   }
   update() {
-    this.x += this.speed;
+    //horizontal movement
+    if (this.game.keys.indexOf("ArrowLeft") > -1) {
+      this.x -= this.speed;
+    }
+    if (this.game.keys.indexOf("ArrowRight") > -1) {
+      this.x += this.speed;
+    }
+
+    //horizontal boundary
+    if (this.x < 0) {
+      this.x = 0;
+    }
+
+    if (this.x > this.game.width - this.width) {
+      this.x = this.game.width - this.width;
+    }
   }
 }
 
@@ -25,7 +40,22 @@ class Game {
     this.canvas = canvas;
     this.width = this.canvas.width;
     this.height = this.canvas.height;
+    this.keys = [];
     this.player = new Player(this);
+
+    //event listener
+    window.addEventListener("keydown", (e) => {
+      if (this.keys.indexOf(e.key) < 0) {
+        this.keys.push(e.key);
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      const index = this.keys.indexOf(e.key);
+      if (index > -1) {
+        this.keys.splice(index, 1);
+      }
+    });
   }
 
   render(context) {
